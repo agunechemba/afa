@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#f5f2ec" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0b0b0c" media="(prefers-color-scheme: dark)" />
+<title>Afa — a yes or no oracle</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Afa" />
+
+<link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Mute sound">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M4 9.2v5.6h3.4L12 18.6V5.4L7.4 9.2H4z" fill="currentColor" stroke="none"/>
+      <path class="waves" d="M15.4 8.8a4.6 4.6 0 0 1 0 6.4M18.1 6.2a8.2 8.2 0 0 1 0 11.6"/>
+      <path class="slash" d="M16 9.6l4.6 4.6M20.6 9.6L16 14.2"/>
+    </svg>
+  </button>
+
+  <button class="reset" id="reset" type="button" aria-label="Reset — start afresh" title="Start afresh">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="1 4 1 10 7 10"/>
+      <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+    </svg>
+  </button>
+
+  <main class="app">
+    <div class="coin-area" id="coinArea">
+      <div class="ground" aria-hidden="true"></div>
+      <div class="lift" id="lift">
+        <div class="stage">
+          <button class="coin" id="coin" type="button" aria-label="Flip the coin">
+            <span class="disc" id="disc">
+              <span class="face face--one"><span class="glyph">1</span></span>
+              <span class="face face--zero"><span class="glyph">0</span></span>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <p class="verdict" id="verdict" role="status" aria-live="polite"></p>
+  </main>
+
+  <p class="hint" id="hint">tap anywhere</p>
+
+  <!-- install prompt (shown by pwa.js) -->
+  <div class="install" id="install" aria-hidden="true">
+    <span class="install__text" id="installText">Install The Coin</span>
+    <button class="install__btn" id="installBtn" type="button">Install</button>
+    <button class="install__close" id="installClose" type="button" aria-label="Not now">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18"/>
+      </svg>
+    </button>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="pwa.js"></script>
+</body>
+</html>

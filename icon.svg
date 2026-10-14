@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="The Coin">
+  <defs>
+    <radialGradient id="face" cx="34%" cy="26%" r="84%">
+      <stop offset="0%"   stop-color="#fffefb"/>
+      <stop offset="47%"  stop-color="#efe9dc"/>
+      <stop offset="100%" stop-color="#cfc5b1"/>
+    </radialGradient>
+  </defs>
+
+  <!-- full-bleed background: works for both "any" and "maskable" -->
+  <rect width="512" height="512" fill="#f5f2ec"/>
+
+  <circle cx="256" cy="256" r="152" fill="url(#face)"
+          stroke="rgba(60,50,30,0.14)" stroke-width="3"/>
+  <circle cx="256" cy="256" r="130" fill="none"
+          stroke="rgba(60,50,30,0.14)" stroke-width="3"/>
+
+  <text x="256" y="262" text-anchor="middle"
+        dominant-baseline="central"
+        font-family="Georgia, 'Iowan Old Style', 'Times New Roman', serif"
+        font-size="156" fill="#2a2620">1</text>
+</svg>

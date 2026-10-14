@@ -1,0 +1,425 @@
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root {
+  --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, Inter, system-ui, sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino,
+           "Book Antiqua", Georgia, ui-serif, serif;
+
+  --coin-size: min(60vw, 46vh, 220px);
+
+  /* light */
+  --bg:          #f5f2ec;
+  --fg:          #17150f;
+  --muted:       rgba(23, 21, 15, 0.42);
+  --vignette:    rgba(80, 66, 40, 0.11);
+  --coin-hi:     #fffefb;
+  --coin-mid:    #efe9dc;
+  --coin-lo:     #cfc5b1;
+  --coin-ring:   rgba(60, 50, 30, 0.14);
+  --coin-sheen:  rgba(255, 255, 255, 0.9);
+  --coin-digit:  #2a2620;
+  --coin-shadow: rgba(70, 56, 30, 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:          #0b0b0c;
+    --fg:          #ece7dd;
+    --muted:       rgba(236, 231, 221, 0.38);
+    --vignette:    rgba(0, 0, 0, 0.55);
+    --coin-hi:     #47474d;
+    --coin-mid:    #2a2a2e;
+    --coin-lo:     #131315;
+    --coin-ring:   rgba(255, 255, 255, 0.12);
+    --coin-sheen:  rgba(255, 255, 255, 0.14);
+    --coin-digit:  #f4efe6;
+    --coin-shadow: rgba(0, 0, 0, 0.75);
+  }
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { height: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background-color 0.45s ease, color 0.45s ease;
+}
+
+/* soft vignette for depth */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(115% 80% at 50% 32%,
+              transparent 0%, var(--vignette) 100%);
+  transition: background 0.45s ease;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(26px, 6vh, 56px);
+  padding: 24px;
+}
+
+.coin-area {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-bottom: 34px;
+}
+
+/* ground shadow */
+.ground {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: calc(var(--coin-size) * 0.88);
+  height: 16px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--coin-shadow), transparent 78%);
+  filter: blur(4px);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.lift { will-change: transform; }
+
+.stage {
+  perspective: 1100px;
+  perspective-origin: 50% 50%;
+}
+
+/* ============================================================
+   COIN
+   ============================================================ */
+.coin {
+  position: relative;
+  display: block;
+  width: var(--coin-size);
+  height: var(--coin-size);
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+          appearance: none;
+  outline: none;
+}
+
+.coin:focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 10px;
+  border-radius: 50%;
+}
+
+.disc {
+  position: absolute;
+  inset: 0;
+  transform: rotateX(0deg);
+  transform-style: preserve-3d;
+  /* Used only when the coin is *deciding*. Idle motion is driven by JS. */
+  transition: transform 1.7s cubic-bezier(0.2, 0.82, 0.24, 1);
+  will-change: transform;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background: radial-gradient(circle at 34% 26%,
+              var(--coin-hi) 0%,
+              var(--coin-mid) 47%,
+              var(--coin-lo) 100%);
+  box-shadow:
+    inset 0 0 0 1px var(--coin-ring),
+    inset 0 1px 0 var(--coin-sheen),
+    inset 0 -10px 22px rgba(0, 0, 0, 0.10),
+    0 22px 46px -18px var(--coin-shadow);
+}
+
+/* engraved inner ring */
+.face::after {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  border: 1px solid var(--coin-ring);
+}
+
+.face--zero { transform: rotateX(180deg); }
+
+.glyph {
+  position: relative;
+  z-index: 1;
+  font-family: var(--serif);
+  font-size: calc(var(--coin-size) * 0.46);
+  font-weight: 400;
+  line-height: 1;
+  color: var(--coin-digit);
+  transform: translateY(-0.02em);
+}
+
+/* ============================================================
+   VERDICT + HINT
+   ============================================================ */
+.verdict {
+  margin: 0;
+  min-height: 1em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;          /* optically recentre the tracking */
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.verdict.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hint {
+  position: fixed;
+  left: 50%;
+  bottom: max(26px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  margin: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.85;
+  pointer-events: none;
+  transition: opacity 0.7s ease;
+  white-space: nowrap;
+}
+
+.hint.hide { opacity: 0; }
+
+/* ============================================================
+   CORNER CONTROLS  (sound / reset)
+   ============================================================ */
+.sound,
+.reset {
+  position: fixed;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  opacity: 0.55;
+  cursor: pointer;
+  -webkit-appearance: none;
+          appearance: none;
+  transition: opacity 0.3s ease, color 0.3s ease;
+}
+
+.sound { top: max(16px, env(safe-area-inset-top));
+         right: max(16px, env(safe-area-inset-right)); }
+
+.reset { top: max(16px, env(safe-area-inset-top));
+         left:  max(16px, env(safe-area-inset-left)); }
+
+.sound:hover,
+.sound:focus-visible,
+.reset:hover,
+.reset:focus-visible { opacity: 1; color: var(--fg); outline: none; }
+
+.sound svg,
+.reset svg { width: 19px; height: 19px; display: block; }
+
+.sound[aria-pressed="true"] .waves { display: none; }
+.sound[aria-pressed="false"] .slash { display: none; }
+
+@keyframes reset-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+.reset.is-resetting svg {
+  animation: reset-spin 0.62s cubic-bezier(0.32, 0.72, 0.3, 1);
+}
+
+/* ============================================================
+   MOTION
+   ============================================================ */
+
+/* --- idle: the coin is undecided, breathing on the ground --- */
+@keyframes ground-breathe {
+  0%, 100% { opacity: 0.88; transform: translateX(-50%) scaleX(1); }
+  50%      { opacity: 0.52; transform: translateX(-50%) scaleX(0.93); }
+}
+
+.coin-area.is-idle .ground {
+  animation: ground-breathe 4.2s ease-in-out infinite;
+}
+
+/* --- flip: the coin lifts and strikes --- */
+@keyframes lift {
+  0%   { transform: translateY(0)     scale(1); }
+  32%  { transform: translateY(-30px) scale(1.055); }
+  68%  { transform: translateY(-6px)  scale(1.012); }
+  100% { transform: translateY(0)     scale(1); }
+}
+
+@keyframes ground-pulse {
+  0%   { opacity: 0.9;  transform: translateX(-50%) scaleX(1); }
+  32%  { opacity: 0.42; transform: translateX(-50%) scaleX(0.76); }
+  68%  { opacity: 0.78; transform: translateX(-50%) scaleX(0.93); }
+  100% { opacity: 0.9;  transform: translateX(-50%) scaleX(1); }
+}
+
+.coin-area.is-flipping .lift {
+  animation: lift 1.7s cubic-bezier(0.3, 0.1, 0.3, 1);
+}
+
+.coin-area.is-flipping .ground {
+  animation: ground-pulse 1.7s cubic-bezier(0.3, 0.1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .disc { transition-duration: 0.34s; }
+  .coin-area.is-flipping .lift,
+  .coin-area.is-flipping .ground { animation: none; }
+  .coin-area.is-flipping .ground { opacity: 0.7; }
+  .coin-area.is-idle .ground { animation: none; }
+  .reset.is-resetting svg { animation: none; }
+}
+
+
+
+
+
+
+/* ============================================================
+   INSTALL BANNER
+   ============================================================ */
+
+.install {
+  position: fixed;
+  left: 50%;
+  bottom: calc(max(26px, env(safe-area-inset-bottom)) + 40px);
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  max-width: calc(100vw - 28px);
+  padding: 6px 6px 6px 18px;
+
+  border: 1px solid var(--coin-ring);
+  border-radius: 999px;
+  background: var(--coin-mid);
+  box-shadow: 0 16px 38px -16px var(--coin-shadow);
+
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+  white-space: nowrap;
+
+  opacity: 0;
+  transform: translate(-50%, 10px);
+  pointer-events: none;
+
+  transition: opacity 0.45s ease,
+              transform 0.45s cubic-bezier(0.2, 0.82, 0.24, 1);
+}
+
+.install.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  pointer-events: auto;
+}
+
+.install__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 4px;
+}
+
+.install__btn {
+  flex: none;
+  padding: 7px 15px;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--fg);
+  color: var(--bg);
+  cursor: pointer;
+  -webkit-appearance: none;
+          appearance: none;
+  transition: opacity 0.25s ease;
+}
+
+.install__btn:hover,
+.install__btn:focus-visible { opacity: 0.82; outline: none; }
+
+.install__close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+  -webkit-appearance: none;
+          appearance: none;
+  transition: color 0.25s ease;
+}
+
+.install__close:hover,
+.install__close:focus-visible { color: var(--fg); outline: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .install { transition: opacity 0.2s ease; transform: translate(-50%, 0); }
+}
