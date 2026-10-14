@@ -22,15 +22,6 @@
 
 <body>
 
-  <button class="sound" id="sound" type="button" aria-pressed="false" aria-label="Mute sound">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-         stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M4 9.2v5.6h3.4L12 18.6V5.4L7.4 9.2H4z" fill="currentColor" stroke="none"/>
-      <path class="waves" d="M15.4 8.8a4.6 4.6 0 0 1 0 6.4M18.1 6.2a8.2 8.2 0 0 1 0 11.6"/>
-      <path class="slash" d="M16 9.6l4.6 4.6M20.6 9.6L16 14.2"/>
-    </svg>
-  </button>
-
   <button class="reset" id="reset" type="button" aria-label="Reset — start afresh" title="Start afresh">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
          stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -46,9 +37,10 @@
         <div class="stage">
           <button class="coin" id="coin" type="button" aria-label="Flip the coin">
             <span class="disc" id="disc">
-              <span class="face face--one"><span class="glyph">1</span></span>
-              <span class="face face--zero"><span class="glyph">0</span></span>
-            </span>
+  <span class="face face--one"><span class="glyph">1</span></span>
+  <span class="face face--zero"><span class="glyph">0</span></span>
+  <span class="rim" id="rim" aria-hidden="true"></span>
+</span>
           </button>
         </div>
       </div>

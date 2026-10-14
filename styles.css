@@ -9,6 +9,11 @@
 
   --coin-size: min(60vw, 46vh, 220px);
 
+  /* NEW — the coin's physical thickness, and the rim density */
+  --coin-thickness: calc(var(--coin-size) * 0.08);   /* ~8% of diameter */
+  --slat-count: 36;
+  --slat-length: calc(3.3 * var(--coin-size) / var(--slat-count));
+
   /* light */
   --bg:          #f5f2ec;
   --fg:          #17150f;
@@ -117,6 +122,7 @@ body::before {
   perspective-origin: 50% 50%;
 }
 
+
 /* ============================================================
    COIN
    ============================================================ */
@@ -146,8 +152,8 @@ body::before {
   inset: 0;
   transform: rotateX(0deg);
   transform-style: preserve-3d;
-  /* Used only when the coin is *deciding*. Idle motion is driven by JS. */
-  transition: transform 1.7s cubic-bezier(0.2, 0.82, 0.24, 1);
+  /* Duration is drawn per-flip by JS; 1.7s is only the pre-JS fallback. */
+  transition: transform var(--flip-dur, 1.7s) cubic-bezier(0.2, 0.82, 0.24, 1);
   will-change: transform;
 }
 
@@ -179,7 +185,16 @@ body::before {
   border: 1px solid var(--coin-ring);
 }
 
-.face--zero { transform: rotateX(180deg); }
+/* Faces are pushed out along ±Z by half the thickness, so the coin has
+   a real body instead of being a paper-thin disc. */
+.face--one {
+  transform: translateZ(calc(var(--coin-thickness) / 2));
+}
+
+/* was: transform: rotateX(180deg) translateZ(calc(var(--coin-thickness) / 2)); */
+.face--zero {
+  transform: rotateY(180deg) translateZ(calc(var(--coin-thickness) / 2));
+}
 
 .glyph {
   position: relative;
@@ -190,6 +205,54 @@ body::before {
   line-height: 1;
   color: var(--coin-digit);
   transform: translateY(-0.02em);
+}
+
+/* ============================================================
+   RIM — the coin's cylindrical edge
+   ------------------------------------------------------------
+   Built from N thin slats arranged around the coin's Z axis.
+   Each slat lies tangent to the circle, so when the coin flips
+   past edge-on, you actually see a body with thickness — not a
+   zero-width line.
+   ============================================================ */
+.rim {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.rim__slat {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+
+  /* width runs along the coin's Z axis  → the thickness            */
+  /* height runs tangentially around the circle → chord of the arc  */
+  width:  var(--coin-thickness);
+  height: var(--slat-length);
+  margin-left: calc(var(--coin-thickness) / -2);
+  margin-top:  calc(var(--slat-length)    / -2);
+
+  /* Slight metallic sheen across the thickness — brighter in the
+     middle, dimmer at the seams with the two faces. */
+  background: linear-gradient(
+    to right,
+    var(--coin-lo)  0%,
+    var(--coin-mid) 28%,
+    var(--coin-hi)  50%,
+    var(--coin-mid) 72%,
+    var(--coin-lo)  100%
+  );
+  box-shadow: inset 0 0 0 1px var(--coin-ring);
+
+  /* Order: rotateZ first (position around the coin), then translate
+     out to the radius, then rotateY(90deg) so the slat's width lies
+     along Z (the coin's thickness). */
+  transform:
+    rotateZ(var(--a, 0deg))
+    translateX(calc(var(--coin-size) / 2))
+    rotateY(90deg);
 }
 
 /* ============================================================
@@ -234,9 +297,8 @@ body::before {
 .hint.hide { opacity: 0; }
 
 /* ============================================================
-   CORNER CONTROLS  (sound / reset)
+   CORNER CONTROLS  (reset only — sound was removed)
    ============================================================ */
-.sound,
 .reset {
   position: fixed;
   display: grid;
@@ -255,22 +317,13 @@ body::before {
   transition: opacity 0.3s ease, color 0.3s ease;
 }
 
-.sound { top: max(16px, env(safe-area-inset-top));
-         right: max(16px, env(safe-area-inset-right)); }
-
 .reset { top: max(16px, env(safe-area-inset-top));
          left:  max(16px, env(safe-area-inset-left)); }
 
-.sound:hover,
-.sound:focus-visible,
 .reset:hover,
 .reset:focus-visible { opacity: 1; color: var(--fg); outline: none; }
 
-.sound svg,
 .reset svg { width: 19px; height: 19px; display: block; }
-
-.sound[aria-pressed="true"] .waves { display: none; }
-.sound[aria-pressed="false"] .slash { display: none; }
 
 @keyframes reset-spin {
   from { transform: rotate(0deg); }
@@ -311,26 +364,21 @@ body::before {
 }
 
 .coin-area.is-flipping .lift {
-  animation: lift 1.7s cubic-bezier(0.3, 0.1, 0.3, 1);
+  animation: lift var(--flip-dur, 1.7s) cubic-bezier(0.3, 0.1, 0.3, 1);
 }
 
 .coin-area.is-flipping .ground {
-  animation: ground-pulse 1.7s cubic-bezier(0.3, 0.1, 0.3, 1);
+  animation: ground-pulse var(--flip-dur, 1.7s) cubic-bezier(0.3, 0.1, 0.3, 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .disc { transition-duration: 0.34s; }
+  /* .disc duration is driven by --flip-dur from JS now. */
   .coin-area.is-flipping .lift,
   .coin-area.is-flipping .ground { animation: none; }
   .coin-area.is-flipping .ground { opacity: 0.7; }
   .coin-area.is-idle .ground { animation: none; }
   .reset.is-resetting svg { animation: none; }
 }
-
-
-
-
-
 
 /* ============================================================
    INSTALL BANNER
